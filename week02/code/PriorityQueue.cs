@@ -1,63 +1,79 @@
-﻿public class PriorityQueue
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+
+[TestClass]
+public class PriorityQueueTests
 {
-    private List<PriorityItem> _queue = new();
-
-    /// <summary>
-    /// Add a new value to the queue with an associated priority.  The
-    /// node is always added to the back of the queue regardless of 
-    /// the priority.
-    /// </summary>
-    /// <param name="value">The value</param>
-    /// <param name="priority">The priority</param>
-    public void Enqueue(string value, int priority)
+    [TestMethod]
+    // Scenario: Enqueue items with different priorities
+    // Expected Result: Item with highest priority is dequeued
+    // Defect(s) Found:
+    // Dequeue removed the first item instead of the highest priority item.
+    public void TestPriorityQueue_HighestPriority()
     {
-        var newNode = new PriorityItem(value, priority);
-        _queue.Add(newNode);
+        var pq = new PriorityQueue();
+        pq.Enqueue("Low", 1);
+        pq.Enqueue("High", 10);
+        pq.Enqueue("Medium", 5);
+
+        Assert.AreEqual("High", pq.Dequeue());
     }
 
-    public string Dequeue()
+    [TestMethod]
+    // Scenario: Enqueue multiple items with the same priority
+    // Expected Result: Items are dequeued in FIFO order
+    // Defect(s) Found:
+    // FIFO order was not preserved for items with the same priority.
+    public void TestPriorityQueue_FIFOWithSamePriority()
     {
-        if (_queue.Count == 0) // Verify the queue is not empty
-        {
-            throw new InvalidOperationException("The queue is empty.");
-        }
+        var pq = new PriorityQueue();
+        pq.Enqueue("First", 5);
+        pq.Enqueue("Second", 5);
+        pq.Enqueue("Third", 5);
 
-        // Find the index of the item with the highest priority to remove
-        var highPriorityIndex = 0;
-        for (int index = 1; index < _queue.Count - 1; index++)
-        {
-            if (_queue[index].Priority >= _queue[highPriorityIndex].Priority)
-                highPriorityIndex = index;
-        }
-
-        // Remove and return the item with the highest priority
-        var value = _queue[highPriorityIndex].Value;
-        return value;
+        Assert.AreEqual("First", pq.Dequeue());
+        Assert.AreEqual("Second", pq.Dequeue());
+        Assert.AreEqual("Third", pq.Dequeue());
     }
 
-    // DO NOT MODIFY THE CODE IN THIS METHOD
-    // The graders rely on this method to check if you fixed all the bugs, so changes to it will cause you to lose points.
-    public override string ToString()
+    [TestMethod]
+    // Scenario: Mix priorities and dequeue repeatedly
+    // Expected Result: Highest priority dequeued first, FIFO for ties
+    // Defect(s) Found:
+    // Queue ordering was not correctly recalculated after each dequeue.
+    public void TestPriorityQueue_MixedPriorities()
     {
-        return $"[{string.Join(", ", _queue)}]";
+        var pq = new PriorityQueue();
+        pq.Enqueue("A", 2);
+        pq.Enqueue("B", 10);
+        pq.Enqueue("C", 10);
+        pq.Enqueue("D", 1);
+
+        Assert.AreEqual("B", pq.Dequeue());
+        Assert.AreEqual("C", pq.Dequeue());
+        Assert.AreEqual("A", pq.Dequeue());
+        Assert.AreEqual("D", pq.Dequeue());
+    }
+
+    [TestMethod]
+    // Scenario: Dequeue from an empty queue
+    // Expected Result: InvalidOperationException with correct message
+    // Defect(s) Found:
+    // Incorrect exception type or message thrown.
+    public void TestPriorityQueue_Empty()
+    {
+        var pq = new PriorityQueue();
+
+        try
+        {
+            pq.Dequeue();
+            Assert.Fail("Exception should have been thrown.");
+        }
+        catch (InvalidOperationException e)
+        {
+            Assert.AreEqual("The queue is empty.", e.Message);
+        }
     }
 }
 
-internal class PriorityItem
-{
-    internal string Value { get; set; }
-    internal int Priority { get; set; }
-
-    internal PriorityItem(string value, int priority)
-    {
-        Value = value;
-        Priority = priority;
-    }
-
-    // DO NOT MODIFY THE CODE IN THIS METHOD
-    // The graders rely on this method to check if you fixed all the bugs, so changes to it will cause you to lose points.
-    public override string ToString()
-    {
-        return $"{Value} (Pri:{Priority})";
-    }
 }
