@@ -214,6 +214,7 @@ public class Node
 /// Extension method for printing IEnumerable<int> as string
 /// </summary>
 public static class IntArrayExtensionMethods
+
 {
     public static string AsString(this IEnumerable array)
     {
